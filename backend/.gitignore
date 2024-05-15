@@ -3,6 +3,7 @@
 /node_modules
 /docker-compose.yml
 /.env
+/prisma/migrations
 
 # Logs
 logs
