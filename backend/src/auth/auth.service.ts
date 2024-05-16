@@ -59,4 +59,32 @@ export class AuthService {
 
     return accessToken;
   }
+
+  /**
+   * アクセストークンとリフレッシュトークンを発行し、レスポンスのクッキーに設定する。
+   * これにより認証が必要な後続のリクエストでこれらのトークンを使用できるようになる
+   */
+  private async issueTokens(user: User, response: Response) {
+    const payload = { username: user.fullname, sub: user.id };
+
+    const accessToken = this.jwtService.sign(
+      { ...payload },
+      {
+        secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
+        expiresIn: '150sec', //トークンの有効期限150秒
+      },
+    );
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+      expiresIn: '7d', //トークンの有効期限7日
+    });
+
+    //response.cookieを使用して生成したトークンをレスポンスのクッキーに設定する
+    response.cookie('access_token', accessToken, { httpOnly: true });
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+    });
+
+    return { user };
+  }
 }
